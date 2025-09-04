@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FC Barcelona — 2025/26 Fixtures (US Timezones)</title>
+  <meta name="description" content="Official 2025/26 FC Barcelona fixtures for LaLiga, UEFA Champions League and Copa del Rey, shown in your selected US timezone (ET/CT/MT/PT)." />
+  <style>
+    :root{
+      --primary:#004B87;   /* blaugrana blue */
+      --secondary:#A50044; /* claret */
+      --accent:#EDBB00;    /* gold */
+      --ink:#0a0a0b; --muted:rgba(255,255,255,.92); --shadow:0 8px 26px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+      color:#fff; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale
+    }
+    .header{ position:sticky; top:0; z-index:20; text-align:center; padding:18px 12px; background:color-mix(in oklab, var(--primary) 85%, black 15%); box-shadow:0 4px 20px rgba(0,0,0,.35); backdrop-filter: blur(6px) }
+    .brand{ display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap }
+    .brand h1{ font-size:clamp(1.35rem,2.6vw,2.1rem); letter-spacing:.3px; text-shadow:2px 2px 4px rgba(0,0,0,.35) }
+    .season-info{ opacity:.95; margin-top:6px }
+    .toolbar{ display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin-top:12px }
+    .select,.nav-btn{ appearance:none; border:none; cursor:pointer; font-weight:700; padding:10px 14px; border-radius:999px; transition:transform .15s ease, box-shadow .2s ease, background .2s ease }
+    .nav-btn{ background:var(--accent); color:var(--primary) }
+    .select{ background:#fff; color:#111 }
+    .nav-btn:hover{ transform:translateY(-1px) }
+
+    .calendar-container{ max-width:1200px; margin:20px auto 36px; padding:0 16px }
+
+    .month-navigation{ margin:16px 0 18px; display:flex; align-items:center; justify-content:space-between; gap:8px; background:color-mix(in oklab, var(--secondary) 80%, black 10%); padding:14px 18px; border-radius:16px; box-shadow: var(--shadow) }
+    .current-month{ font-size:clamp(1.1rem, 2.2vw, 1.6rem); font-weight:800; color:var(--accent); text-shadow:1px 1px 2px rgba(0,0,0,.45) }
+
+    .stats-panel{ display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin: 18px 0 }
+    .stat-card{ background: color-mix(in oklab, var(--secondary) 78%, black 8%); padding:16px; border-radius:14px; text-align:center; box-shadow:0 4px 14px rgba(0,0,0,.22) }
+    .stat-number{ font-size:1.6rem; color:var(--accent); font-weight:900 }
+    .stat-label{ color:#fff; margin-top:4px; opacity:.95 }
+
+    .calendar-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:10px; margin-bottom:20px }
+    .calendar-header{ background: var(--primary); padding:12px; text-align:center; font-weight:800; border-radius:12px; color:var(--accent); box-shadow:0 2px 8px rgba(0,0,0,.25) }
+    .calendar-day{ background: var(--muted); color: var(--primary); border-radius:14px; padding:14px; min-height:120px; position:relative; cursor:pointer; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; border:2px solid transparent }
+    .calendar-day:hover{ transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--accent) }
+    .day-number{ font-weight:800; font-size:1.05rem; margin-bottom:8px }
+    .fixture{ background: linear-gradient(45deg, var(--secondary), var(--primary)); color:#fff; padding:8px; border-radius:10px; margin:6px 0; font-size:.88rem; text-align:center; position:relative; overflow:hidden }
+    .fixture:before{ content:""; position:absolute; inset:0; left:-100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent); transition:left .6s }
+    .fixture:hover:before{ left:100% }
+    .home-game{ background: linear-gradient(45deg, var(--primary), var(--accent)) }
+    .away-game{ background: linear-gradient(45deg, var(--secondary), #666) }
+
+    .notes-section{ background: color-mix(in oklab, var(--primary) 85%, black 10%); margin: 22px auto; padding:18px; border-radius:18px; max-width:820px; box-shadow:0 8px 30px rgba(0,0,0,.32) }
+    .notes-title{ color:var(--accent); font-size:1.22rem; margin-bottom:10px; text-align:center; font-weight:900 }
+    .note-input{ width:100%; padding:12px; border:none; border-radius:10px; margin-bottom:10px; font-size:1rem; background:#fff }
+    .add-note-btn{ background: var(--secondary); color:#fff; border:none; padding:10px 18px; border-radius:999px; cursor:pointer; font-weight:900; transition: background .2s ease, transform .2s ease }
+    .add-note-btn:hover{ background: var(--accent); color: var(--primary); transform: translateY(-1px) }
+    .notes-list{ margin-top:12px }
+    .note-item{ background: rgba(255,255,255,.1); padding:10px; border-radius:10px; margin:8px 0; border-left:4px solid var(--accent) }
+
+    .modal{ display:none; position:fixed; inset:0; width:100%; height:100%; background: rgba(0,0,0,.8); z-index:1000 }
+    .modal-content{ background: linear-gradient(135deg, var(--primary), var(--secondary)); margin:5% auto; padding:22px; width:min(92%, 720px); border-radius:18px; position:relative; color:#fff; box-shadow: 0 12px 40px rgba(0,0,0,.45) }
+    .close-modal{ position:absolute; top:12px; right:18px; font-size:2rem; cursor:pointer; color:var(--accent); line-height:1 }
+
+    @media (max-width: 840px){
+      .calendar-grid{ grid-template-columns:1fr }
+      .calendar-header{ display:none }
+      .month-navigation{ flex-direction:column; gap:12px }
+    }
+    .celebration{ animation: celebrate 1.6s ease-in-out }
+    @keyframes celebrate{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.06) rotate(2deg) }}
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <h1 id="appTitle">⚽ FC BARCELONA — OFFICIAL 2025/26 ⚽</h1>
+      <span class="season-info" id="seasonInfo">LaLiga • UEFA Champions League • Copa del Rey</span>
+    </div>
+    <div class="toolbar" role="toolbar" aria-label="Calendar toolbar">
+      <button class="nav-btn" id="todayBtn" title="Jump to current month">Today</button>
+      <label for="tzSelect" class="sr-only">US Timezone</label>
+      <select id="tzSelect" class="select" title="Show times in US timezone">
+        <option value="America/New_York">ET</option>
+        <option value="America/Chicago" selected>CT</option>
+        <option value="America/Denver">MT</option>
+        <option value="America/Los_Angeles">PT</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="calendar-container">
+    <section class="month-navigation" aria-label="Month navigation">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous month">← Previous</button>
+      <div class="current-month" id="currentMonth">—</div>
+      <button class="nav-btn" id="nextBtn" aria-label="Next month">Next →</button>
+    </section>
+
+    <section class="stats-panel" aria-label="Season stats">
+      <article class="stat-card"><div class="stat-number" id="statTotal">—</div><div class="stat-label">Total Matches (shown)</div></article>
+      <article class="stat-card"><div class="stat-number" id="statHome">—</div><div class="stat-label">Home</div></article>
+      <article class="stat-card"><div class="stat-number" id="statAway">—</div><div class="stat-label">Away</div></article>
+      <article class="stat-card"><div class="stat-number">🏆</div><div class="stat-label" id="statGoal">Target: Titles</div></article>
+    </section>
+
+    <section class="calendar-grid" id="calendarGrid" aria-label="Calendar grid"></section>
+
+    <section class="notes-section" aria-label="Notes">
+      <h3 class="notes-title">📝 Match Notes & Predictions</h3>
+      <input type="text" class="note-input" id="noteInput" placeholder="Add your thoughts about upcoming matches..." aria-label="Add note" />
+      <button class="add-note-btn" id="addNoteBtn">Add Note</button>
+      <div class="notes-list" id="notesList"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="matchModal" aria-modal="true" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <button class="close-modal" id="closeModalBtn" aria-label="Close">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Helpers =====
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    const tzSelect = document.getElementById('tzSelect');
+    const fmtInTZ = (iso, tz) => new Date(iso).toLocaleString('en-US',{ timeZone: tz, hour: '2-digit', minute: '2-digit' });
+    const fmtDateInTZ = (iso, tz) => new Date(iso).toLocaleString('en-US',{ timeZone: tz, weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    // Convert a Europe/Madrid local time (HH:MM) on Y-M-D into UTC ISO
+    function madridOffsetMinutes(dateYMD){
+      const [y,m,d] = dateYMD.split('-').map(Number);
+      function lastSunday(year, month){ const dt = new Date(Date.UTC(year, month+1, 0)); const dow = dt.getUTCDay(); dt.setUTCDate(dt.getUTCDate()-dow); return dt }
+      const start = lastSunday(y,2); // Mar
+      const end   = lastSunday(y,9); // Oct
+      const cur   = new Date(Date.UTC(y, m-1, d));
+      return (cur>=start && cur<end) ? 120 : 60; // minutes
+    }
+    function madridLocalToISO(dateYMD, timeHM){
+      if(!timeHM) return null; // TBD
+      const [h,mi] = timeHM.split(':').map(Number);
+      const off = madridOffsetMinutes(dateYMD);
+      const utcMs = Date.UTC(+dateYMD.slice(0,4), +dateYMD.slice(5,7)-1, +dateYMD.slice(8,10), h, mi) - off*60000;
+      return new Date(utcMs).toISOString();
+    }
+
+    // ===== Official Fixtures =====
+    // Source for LaLiga pairings & windows: Barca Blaugranes (Jul 1, 2025).
+    // Source for UCL dates/times (UTC): UEFA.com (official club matches page).
+    // Copa del Rey entry window per Spanish press (AS); opponent/time TBD until draw.
+
+    const DATA = {
+      team: 'FC Barcelona',
+      notesKey: 'notes_barca_official_v1',
+      fixtures: {
+        // ---------- LALIGA (TBD times; windows as per official list) ----------
+        // August 2025
+        '2025-08-16': { comp:'LaLiga', opponent:'RCD Mallorca', type:'away', time_madrid:null },
+        '2025-08-23': { comp:'LaLiga', opponent:'Levante UD', type:'away', time_madrid:null },
+        '2025-08-30': { comp:'LaLiga', opponent:'Rayo Vallecano', type:'away', time_madrid:null },
+        // September 2025
+        '2025-09-13': { comp:'LaLiga', opponent:'Valencia CF', type:'home', time_madrid:null },
+        '2025-09-20': { comp:'LaLiga', opponent:'Getafe CF', type:'home', time_madrid:null },
+        '2025-09-24': { comp:'LaLiga', opponent:'Real Oviedo', type:'away', time_madrid:null },
+        '2025-09-27': { comp:'LaLiga', opponent:'Real Sociedad', type:'home', time_madrid:null },
+        // October 2025
+        '2025-10-04': { comp:'LaLiga', opponent:'Sevilla FC', type:'away', time_madrid:null },
+        '2025-10-18': { comp:'LaLiga', opponent:'Girona FC', type:'home', time_madrid:null },
+        '2025-10-25': { comp:'LaLiga', opponent:'Real Madrid', type:'away', time_madrid:null },
+        // November 2025
+        '2025-11-01': { comp:'LaLiga', opponent:'Elche CF', type:'home', time_madrid:null },
+        '2025-11-08': { comp:'LaLiga', opponent:'RC Celta de Vigo', type:'away', time_madrid:null },
+        '2025-11-22': { comp:'LaLiga', opponent:'Athletic Club', type:'home', time_madrid:null },
+        '2025-11-29': { comp:'LaLiga', opponent:'Deportivo Alavés', type:'home', time_madrid:null },
+        // December 2025
+        '2025-12-06': { comp:'LaLiga', opponent:'Real Betis', type:'away', time_madrid:null },
+        '2025-12-13': { comp:'LaLiga', opponent:'CA Osasuna', type:'home', time_madrid:null },
+        '2025-12-20': { comp:'LaLiga', opponent:'Villarreal CF', type:'away', time_madrid:null },
+        // January 2026
+        '2026-01-03': { comp:'LaLiga', opponent:'RCD Espanyol', type:'away', time_madrid:null },
+        '2026-01-10': { comp:'LaLiga', opponent:'Atlético de Madrid', type:'home', time_madrid:null },
+        '2026-01-17': { comp:'LaLiga', opponent:'Real Sociedad', type:'away', time_madrid:null },
+        '2026-01-24': { comp:'LaLiga', opponent:'Real Oviedo', type:'home', time_madrid:null },
+        // February 2026
+        '2026-02-01': { comp:'LaLiga', opponent:'Elche CF', type:'away', time_madrid:null },
+        '2026-02-07': { comp:'LaLiga', opponent:'RCD Mallorca', type:'home', time_madrid:null },
+        '2026-02-14': { comp:'LaLiga', opponent:'Girona FC', type:'away', time_madrid:null },
+        '2026-02-21': { comp:'LaLiga', opponent:'Levante UD', type:'home', time_madrid:null },
+        // March 2026
+        '2026-03-01': { comp:'LaLiga', opponent:'Villarreal CF', type:'home', time_madrid:null },
+        '2026-03-07': { comp:'LaLiga', opponent:'Athletic Club', type:'away', time_madrid:null },
+        '2026-03-14': { comp:'LaLiga', opponent:'Sevilla FC', type:'home', time_madrid:null },
+        '2026-03-21': { comp:'LaLiga', opponent:'Rayo Vallecano', type:'home', time_madrid:null },
+        // April 2026
+        '2026-04-04': { comp:'LaLiga', opponent:'Atlético de Madrid', type:'away', time_madrid:null },
+        '2026-04-11': { comp:'LaLiga', opponent:'RCD Espanyol', type:'home', time_madrid:null },
+        '2026-04-18': { comp:'LaLiga', opponent:'Getafe CF', type:'away', time_madrid:null },
+        '2026-04-21': { comp:'LaLiga', opponent:'RC Celta de Vigo', type:'home', time_madrid:null },
+        // May 2026
+        '2026-05-02': { comp:'LaLiga', opponent:'CA Osasuna', type:'away', time_madrid:null },
+        '2026-05-09': { comp:'LaLiga', opponent:'Real Madrid', type:'home', time_madrid:null },
+        '2026-05-13': { comp:'LaLiga', opponent:'Deportivo Alavés', type:'away', time_madrid:null },
+        '2026-05-16': { comp:'LaLiga', opponent:'Real Betis', type:'home', time_madrid:null },
+        '2026-05-23': { comp:'LaLiga', opponent:'Valencia CF', type:'away', time_madrid:null },
+
+        // ---------- UEFA CHAMPIONS LEAGUE (Official UTC kickoffs) ----------
+        '2025-09-18': { comp:'UCL', opponent:'Newcastle United', type:'away', iso:'2025-09-18T19:00:00Z' },
+        '2025-10-01': { comp:'UCL', opponent:'Paris', type:'home', iso:'2025-10-01T19:00:00Z' },
+        '2025-10-21': { comp:'UCL', opponent:'Olympiacos', type:'home', iso:'2025-10-21T16:45:00Z' },
+        '2025-11-05': { comp:'UCL', opponent:'Club Brugge', type:'away', iso:'2025-11-05T20:00:00Z' },
+        '2025-11-25': { comp:'UCL', opponent:'Chelsea', type:'away', iso:'2025-11-25T20:00:00Z' },
+        '2025-12-09': { comp:'UCL', opponent:'Eintracht Frankfurt', type:'home', iso:'2025-12-09T20:00:00Z' },
+        '2026-01-21': { comp:'UCL', opponent:'Slavia Praha', type:'away', iso:'2026-01-21T20:00:00Z' },
+        '2026-01-28': { comp:'UCL', opponent:'Copenhagen', type:'home', iso:'2026-01-28T20:00:00Z' },
+
+        // ---------- COPA DEL REY (entry; opponent/time TBD) ----------
+        '2025-12-17': { comp:'Copa del Rey', opponent:'Round of 32 — Opponent TBD', type:'tbd', time_madrid:null }
+      }
+    };
+
+    // Enrich fixtures => compute ISO from Madrid time when provided
+    const ENRICHED = Object.entries(DATA.fixtures).map(([ymd, f])=>{
+      const iso = f.iso || (f.time_madrid ? madridLocalToISO(ymd, f.time_madrid) : null);
+      return { ymd, ...f, iso };
+    }).sort((a,b)=> new Date(a.ymd) - new Date(b.ymd));
+
+    // ===== DOM =====
+    const today = new Date();
+    let currentMonth = today.getMonth();
+    let currentYear = today.getFullYear();
+    const todayBtn = document.getElementById('todayBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const currentMonthEl = document.getElementById('currentMonth');
+    const grid = document.getElementById('calendarGrid');
+    const statTotal = document.getElementById('statTotal');
+    const statHome = document.getElementById('statHome');
+    const statAway = document.getElementById('statAway');
+
+    const modal = document.getElementById('matchModal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    // ===== Notes =====
+    function loadNotes(){ return JSON.parse(localStorage.getItem(DATA.notesKey)||'[]') }
+    function saveNotes(n){ localStorage.setItem(DATA.notesKey, JSON.stringify(n)) }
+    function renderNotes(){
+      const notes = loadNotes();
+      const notesList = document.getElementById('notesList');
+      notesList.innerHTML = notes.map(n => (
+        `<div class="note-item"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div><div>${n.text}</div><small style="color:var(--accent)">📅 ${n.date}</small></div>
+          <button aria-label="Delete note" data-id="${n.id}" class="delNote" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:1.2em">❌</button>
+        </div></div>`
+      )).join('');
+      document.querySelectorAll('.delNote').forEach(btn=> btn.onclick = ()=>{
+        const id=Number(btn.getAttribute('data-id')); saveNotes(loadNotes().filter(n=>n.id!==id)); renderNotes();
+      });
+    }
+    function addNote(){
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim(); if(!text) return;
+      const note = { id:Date.now(), text, date:new Date().toLocaleDateString() };
+      saveNotes([note, ...loadNotes()]); input.value=''; renderNotes();
+    }
+
+    // ===== Calendar =====
+    function generateCalendar(){
+      const monthName = months[currentMonth];
+      currentMonthEl.textContent = `${monthName} ${currentYear}`;
+      grid.innerHTML = '';
+      // headers
+      days.forEach(d=>{ const el=document.createElement('div'); el.className='calendar-header'; el.textContent=d.slice(0,3); grid.appendChild(el); });
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+      for(let i=0;i<firstDay;i++) grid.appendChild(document.createElement('div'));
+
+      const list = ENRICHED.filter(m=>{
+        const dt = new Date(m.ymd);
+        return dt.getFullYear()===currentYear && dt.getMonth()===currentMonth;
+      });
+
+      for(let day=1; day<=daysInMonth; day++){
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const dayEl = document.createElement('div'); dayEl.className='calendar-day';
+        let inner = `<div class="day-number">${day}</div>`;
+        const ms = list.filter(m=> m.ymd===dateStr);
+        ms.forEach(m=>{
+          const cls = m.type==='home' ? 'fixture home-game' : (m.type==='away'?'fixture away-game':'fixture');
+          const tz = tzSelect.value;
+          const timeStr = m.iso ? fmtInTZ(m.iso, tz) + ` ${tz.split('/')[1].replace('_',' ')}` : 'TBD';
+          inner += `<div class="${cls}" data-date="${m.ymd}" data-comp="${m.comp}">
+            ${m.type==='home'?'🏠':'✈️'} ${m.comp}: vs ${m.opponent}<br>${timeStr}
+          </div>`;
+        });
+        dayEl.innerHTML = inner;
+        dayEl.querySelectorAll('.fixture').forEach(box => box.addEventListener('click', (e)=>{ e.stopPropagation(); showMatchDetails(box.getAttribute('data-date')) }));
+        const todayObj = new Date();
+        const isToday = (todayObj.getFullYear()===currentYear && todayObj.getMonth()===currentMonth && todayObj.getDate()===day);
+        if(isToday){ dayEl.style.outline = `3px solid var(--accent)`; dayEl.style.outlineOffset='2px' }
+        grid.appendChild(dayEl);
+      }
+
+      // stats
+      const shown = list.length;
+      const home = list.filter(m=>m.type==='home').length;
+      const away = list.filter(m=>m.type==='away').length;
+      statTotal.textContent = shown; statHome.textContent = home; statAway.textContent = away;
+    }
+
+    function changeMonth(delta){ currentMonth += delta; if(currentMonth>11){ currentMonth=0; currentYear++ } else if(currentMonth<0){ currentMonth=11; currentYear-- } generateCalendar(); }
+    function jumpToToday(){ const t=new Date(); currentMonth=t.getMonth(); currentYear=t.getFullYear(); generateCalendar(); }
+
+    function showMatchDetails(dateStr){
+      const m = ENRICHED.find(x=>x.ymd===dateStr); if(!m) return;
+      const tz = tzSelect.value;
+      const when = m.iso ? fmtDateInTZ(m.iso, tz) : new Date(m.ymd).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) + ' • Time: TBD';
+      const place = m.type==='home' ? '🏟️ Spotify Camp Nou (home)' : (m.type==='away'?'✈️ Away':'Venue TBD');
+      modalContent.innerHTML = `
+        <h2 id="modalTitle" style="margin-bottom:10px">Match Details</h2>
+        <div style="text-align:center; margin: 12px 0;">
+          <div style="font-size:1.25rem; margin:10px 0; font-weight:800">${m.comp} — FC Barcelona vs ${m.opponent}</div>
+          <div style="margin:10px 0;">📅 ${when}</div>
+          <div style="margin:10px 0;">${place}</div>
+        </div>`;
+      document.getElementById('matchModal').style.display='block';
+    }
+
+    // ===== Bindings =====
+    document.getElementById('prevBtn').onclick = ()=> changeMonth(-1);
+    document.getElementById('nextBtn').onclick = ()=> changeMonth(1);
+    document.getElementById('todayBtn').onclick = ()=> jumpToToday();
+    document.getElementById('closeModalBtn').onclick = ()=> (document.getElementById('matchModal').style.display='none');
+    window.onclick = (e)=>{ if(e.target===document.getElementById('matchModal')) document.getElementById('matchModal').style.display='none' };
+
+    document.getElementById('addNoteBtn').onclick = addNote;
+    document.getElementById('noteInput').addEventListener('keypress', (e)=>{ if(e.key==='Enter') addNote() });
+
+    tzSelect.onchange = ()=> generateCalendar();
+
+    // ===== Init =====
+    (function init(){
+      const t = new Date(); currentMonth=t.getMonth(); currentYear=t.getFullYear();
+      generateCalendar(); renderNotes();
+      setTimeout(()=> document.querySelector('.header').classList.add('celebration'), 400);
+    })();
+  </script>
+</body>
+</html>
